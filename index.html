@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nácar Store — BI & Financial Control Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nacar: {
+                            base: '#FCF0E8',      // Light Pink Nácar Base BG
+                            main: '#452F51',      // Deep Nácar Purple
+                            card: '#FFFFFF',      // Clean White Card
+                            soft: '#F5EBE4',      // Muted Soft Pink Card
+                            border: '#452F51',    // Border purple
+                            pink: '#FCF0E8',      // Soft accent
+                            darkText: '#2D1E35',  // Readable high-contrast text
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FCF0E8; color: #2D1E35; }
+        [x-cloak] { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #FCF0E8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #452F51; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2D1E35; }
+    </style>
+</head>
+<body class="bg-nacar-base text-nacar-darkText min-h-screen antialiased selection:bg-nacar-main selection:text-nacar-pink custom-scrollbar" 
+      x-data="nacarDashboard()" 
+      x-init="initDashboard()">
+
+    <!-- EXECUTIVE HEADER WITH OFFICIAL PUBLIC LOGO -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-nacar-main/15 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Left Side: Official Brand Logo & Subtitle -->
+            <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-start">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.postimg.cc/vHdMvbgV/Recurso-38nacar-1.png" alt="Nácar Store Logo" class="h-10 md:h-12 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/200x60/452F51/FCF0E8?text=N%C3%81CAR+STORE';">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full border border-nacar-main text-nacar-main bg-nacar-main/10 tracking-wider">
+                            BI Center
+                        </span>
+                    </div>
+                    <p class="text-xs text-nacar-main/80 font-medium mt-1">
+                        Joyería en Acero Inoxidable & Accesorios Trend
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Side: BCV Rate & Cut-off Countdown -->
+            <div class="flex items-center gap-3 sm:gap-4 w-full md:w-auto justify-end flex-wrap">
+                <div class="bg-nacar-soft border border-nacar-main/20 rounded-xl px-3.5 py-1.5 flex items-center gap-2.5 shadow-sm">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                        <span class="text-xs text-nacar-main font-semibold">Tasa BCV del Día:</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs text-nacar-main font-bold">Bs.</span>
+                        <input type="number" step="0.01" x-model.number="bcvRate" class="w-20 bg-white text-nacar-main font-bold text-sm px-2 py-0.5 rounded border border-nacar-main/30 focus:outline-none focus:border-nacar-main text-right shadow-inner">
+                    </div>
+                </div>
+
+                <div class="bg-nacar-main text-nacar-pink rounded-xl px-3.5 py-1.5 text-right hidden sm:block shadow-md">
+                    <div class="text-[10px] uppercase tracking-wider text-nacar-pink/80 font-semibold">Próximo Corte de Cobro</div>
+                    <div class="text-xs font-bold text-white flex items-center justify-end gap-1">
+                        <i class="fa-regular fa-clock text-[10px]"></i>
+                        <span x-text="daysToNext15 + ' días para el 15 del mes'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- KPI CARDS WITH EDUCATIONAL TOOLTIPS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            
+            <!-- KPI 1: REVENUE -->
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-nacar-main/70">Ingresos Totales Recaudados</span>
+                            <button @click="showTooltip('kpi1')" class="text-nacar-main/50 hover:text-nacar-main transition-colors">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-700 text-xs">
+                            <i class="fa-solid fa-wallet"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-nacar-main tracking-tight mb-1" x-text="formatUSD(totalRealizedRevenue())"></div>
+                    <div class="text-xs font-semibold text-emerald-700" x-text="'≈ ' + formatVES(totalRealizedRevenue() * bcvRate)"></div>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-nacar-main/10 text-[11px] text-nacar-main/70 flex justify-between items-center">
+                    <span>Liquidez Real en Caja</span>
+                    <span class="text-emerald-700 font-bold" x-text="salesList.filter(s => s.paid).length + ' ventas cobradas'"></span>
+                </div>
+            </div>
+
+            <!-- KPI 2: GROSS MARGIN -->
+            <div class="bg-nacar-main text-white border border-nacar-main rounded-2xl p-5 shadow-md flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-nacar-pink/80">Margen Contribución Bruto</span>
+                            <button @click="showTooltip('kpi2')" class="text-nacar-pink/70 hover:text-white transition-colors">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <span class="p-2 rounded-xl bg-white/10 text-nacar-pink text-xs">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-nacar-pink tracking-tight mb-1" x-text="formatUSD(totalGrossMargin())"></div>
+                    <div class="text-xs font-medium text-white/90" x-text="averageGrossMarginPercentage() + '% Margen Promedio Real'"></div>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-white/15 text-[11px] text-nacar-pink/80 flex justify-between items-center">
+                    <span>Ganancia Libre tras Landed Cost</span>
+                    <span class="text-white font-semibold">Saludable (>70%)</span>
+                </div>
+            </div>
+
+            <!-- KPI 3: ACCOUNTS RECEIVABLE -->
+            <div class="bg-white border border-rose-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800">Cuentas por Cobrar (Crédito)</span>
+                            <button @click="showTooltip('kpi3')" class="text-rose-400 hover:text-rose-600 transition-colors">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <span class="p-2 rounded-xl bg-rose-50 text-rose-600 text-xs">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 tracking-tight mb-1" x-text="formatUSD(totalAccountsReceivable())"></div>
+                    <div class="text-xs font-semibold text-rose-700" x-text="'≈ ' + formatVES(totalAccountsReceivable() * bcvRate) + ' al 15'"></div>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-rose-100 text-[11px] text-rose-700/80 flex justify-between items-center">
+                    <span>Incluye 15% Recargo BCV</span>
+                    <span class="text-rose-600 font-bold" x-text="daysToNext15 + 'd para cobrar'"></span>
+                </div>
+            </div>
+
+            <!-- KPI 4: TOTAL INVENTORY VALUE -->
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-nacar-main/70">Valor Total de Inventarios</span>
+                            <button @click="showTooltip('kpi4')" class="text-nacar-main/50 hover:text-nacar-main transition-colors">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <span class="p-2 rounded-xl bg-nacar-main/10 text-nacar-main text-xs">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-nacar-main tracking-tight mb-1" x-text="formatUSD(totalInventoryValue())"></div>
+                    <div class="text-xs font-semibold text-nacar-main/80" x-text="formatUSD(transitInventoryValue()) + ' en Tránsito (Lote 2)'"></div>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-nacar-main/10 text-[11px] text-nacar-main/70 flex justify-between items-center">
+                    <span>Stock Físico + Tránsito</span>
+                    <span class="text-nacar-main font-bold" x-text="formatUSD(stockInventoryValue()) + ' en Mano'"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <div class="flex overflow-x-auto space-x-2 border-b border-nacar-main/20 pb-2 mb-6 custom-scrollbar">
+            <button @click="activeTab = 'calculator'" 
+                    :class="activeTab === 'calculator' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-calculator"></i> 1. Calculadora de Lotes & Costo Landed
+            </button>
+            <button @click="activeTab = 'inventory'" 
+                    :class="activeTab === 'inventory' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-boxes-stacked"></i> 2. Inventario Real & Lotes SKU
+            </button>
+            <button @click="activeTab = 'sales'" 
+                    :class="activeTab === 'sales' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-cash-register"></i> 3. Cuentas por Cobrar & Conciliación
+            </button>
+            <button @click="activeTab = 'analytics'" 
+                    :class="activeTab === 'analytics' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie"></i> 4. Gráficos de Capital & Márgenes
+            </button>
+            <button @click="activeTab = 'guide'" 
+                    :class="activeTab === 'guide' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-book-bookmark"></i> 5. Manual Operativo & Reglas
+            </button>
+        </div>
+
+        <!-- TAB 1: REDESIGNED LOT, PRORATED FREIGHT & LANDED COST CALCULATOR -->
+        <div x-show="activeTab === 'calculator'" class="space-y-6" x-cloak>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left Input Panel (5 columns) -->
+                <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm lg:col-span-5 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="border-b border-nacar-main/15 pb-3 flex justify-between items-center">
+                            <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-nacar-main"></i> Calculadora de Lotes & Costo Landed
+                            </h3>
+                        </div>
+                        
+                        <!-- Input 1: SKU Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-nacar-main/80 mb-1">Nombre / SKU del Producto</label>
+                            <input type="text" x-model="calcName" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3.5 py-2 text-sm text-nacar-main font-semibold focus:outline-none focus:border-nacar-main placeholder-nacar-main/40" placeholder="Ej. Set Reloj Vintage Acero">
+                        </div>
+
+                        <!-- Input 2 & 3: Total Lot Cost & Total Lot Freight -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-nacar-main/80 mb-1">
+                                    Monto Compra Lote ($)
+                                </label>
+                                <input type="number" step="0.01" x-model.number="calcLotTotal" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main font-bold focus:outline-none focus:border-nacar-main text-right">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-nacar-main/80 mb-1">
+                                    Monto Flete Lote ($)
+                                </label>
+                                <input type="number" step="0.01" x-model.number="calcLotFreight" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main font-bold focus:outline-none focus:border-nacar-main text-right">
+                            </div>
+                        </div>
+
+                        <!-- Input 4: FOB Unit Price -->
+                        <div>
+                            <label class="block text-xs font-bold text-nacar-main/80 mb-1">
+                                Precio FOB Base Unidad ($)
+                            </label>
+                            <input type="number" step="0.01" x-model.number="calcFOB" class="w-full bg-nacar-soft border border-nacar-main/30 rounded-xl px-3.5 py-2 text-sm text-nacar-main font-extrabold focus:outline-none focus:border-nacar-main text-right">
+                        </div>
+
+                        <!-- Input 5: Markup Slider -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-bold text-nacar-main/80">Markup Deseado Contado (%)</label>
+                                <span class="text-xs font-extrabold text-nacar-main px-2 py-0.5 bg-nacar-soft rounded border border-nacar-main/20" x-text="calcMarkup + '%'"></span>
+                            </div>
+                            <input type="range" min="30" max="250" step="5" x-model.number="calcMarkup" class="w-full accent-nacar-main bg-nacar-soft h-2 rounded-lg cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-nacar-main/60 mt-1">
+                                <span>Mín. 50%</span>
+                                <span class="text-nacar-main font-semibold">Estándar Nácar (80%-100%)</span>
+                                <span>200% Máx.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="pt-4 border-t border-nacar-main/15">
+                        <button @click="saveCalculatedToInventory()" class="w-full bg-nacar-main hover:bg-nacar-main/90 text-nacar-pink font-extrabold py-3.5 px-4 rounded-xl text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-95">
+                            <i class="fa-solid fa-plus-circle"></i> [+ Guardar Producto al Inventario Real]
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Results & Educational Section (7 columns) -->
+                <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm lg:col-span-7 flex flex-col justify-between space-y-6">
+                    <div class="space-y-5">
+                        
+                        <!-- Title Header -->
+                        <div class="border-b border-nacar-main/15 pb-3 flex justify-between items-center">
+                            <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                                <i class="fa-solid fa-square-poll-vertical text-nacar-main"></i> Desglose de Flete Prorrateado & Precios
+                            </h3>
+                            <button @click="showTooltip('landed_rule')" class="text-xs text-nacar-main font-semibold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-circle-question"></i> ¿Por qué Landed Cost?
+                            </button>
+                        </div>
+
+                        <!-- DYNAMIC EDUCATIONAL BREAKDOWN CARD ("¿Cómo se calculó tu Costo Real?") -->
+                        <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3.5">
+                            <div class="flex items-center justify-between border-b border-nacar-main/15 pb-2.5">
+                                <h4 class="text-xs font-extrabold text-nacar-main uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-calculator"></i> ¿Cómo se calculó tu Costo Real?
+                                </h4>
+                                <span class="text-[10px] bg-nacar-main text-nacar-pink font-bold px-2 py-0.5 rounded-full">Fórmula Automática</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <!-- Step 1: Freight Factor -->
+                                <div class="bg-white p-3 rounded-xl border border-nacar-main/15">
+                                    <span class="text-[10px] text-nacar-main/70 block font-semibold mb-1">1. Factor de Flete</span>
+                                    <div class="text-lg font-extrabold text-nacar-main" x-text="calcFreightFactor().toFixed(2) + '%'"></div>
+                                    <span class="text-[9px] text-nacar-main/60 mt-0.5 block font-mono" x-text="'($' + calcLotFreight + ' / $' + calcLotTotal + ') * 100'"></span>
+                                </div>
+
+                                <!-- Step 2: Unit Freight Aliquot -->
+                                <div class="bg-white p-3 rounded-xl border border-nacar-main/15">
+                                    <span class="text-[10px] text-nacar-main/70 block font-semibold mb-1">2. Flete por Unidad</span>
+                                    <div class="text-lg font-extrabold text-nacar-main" x-text="formatUSD(calcUnitFreightAliquot())"></div>
+                                    <span class="text-[9px] text-nacar-main/60 mt-0.5 block font-mono" x-text="'$' + calcFOB + ' × ' + calcFreightFactor().toFixed(2) + '%'"></span>
+                                </div>
+
+                                <!-- Step 3: Final Landed Cost -->
+                                <div class="bg-white p-3 rounded-xl border border-emerald-500/40">
+                                    <span class="text-[10px] text-emerald-700 block font-bold mb-1">3. Costo Landed Real</span>
+                                    <div class="text-lg font-extrabold text-emerald-700" x-text="formatUSD(simLandedCost())"></div>
+                                    <span class="text-[9px] text-nacar-main/60 mt-0.5 block font-mono" x-text="'$' + calcFOB + ' + ' + formatUSD(calcUnitFreightAliquot())"></span>
+                                </div>
+                            </div>
+
+                            <!-- Explicit Explanation for Partners -->
+                            <div class="bg-white p-3 rounded-xl border border-nacar-main/15 text-xs text-nacar-main leading-relaxed flex items-start gap-2.5">
+                                <i class="fa-solid fa-lightbulb text-nacar-main text-sm mt-0.5 shrink-0"></i>
+                                <span>
+                                    <strong>Nota para Socios:</strong> "Este es el costo real (<strong class="text-emerald-700" x-text="formatUSD(simLandedCost())"></strong>) que debes tomar en cuenta para asegurar tu margen de ganancia, porque integra lo que pagaste por el producto (<span x-text="formatUSD(calcFOB)"></span>) + su parte proporcional del envío (<span x-text="formatUSD(calcUnitFreightAliquot())"></span>)."
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- AUTOMATIC GENERATED PRICES CARDS -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            <!-- Contado Card -->
+                            <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider">Precio Venta Contado</span>
+                                    <span class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">Efectivo / Zelle</span>
+                                </div>
+                                <div class="text-3xl font-extrabold text-emerald-700" x-text="formatUSD(simContadoPrice())"></div>
+                                <div class="pt-2 border-t border-emerald-200 flex justify-between items-center text-xs">
+                                    <span class="text-emerald-900/80">Ganancia Neta / Unid:</span>
+                                    <span class="font-bold text-emerald-800" x-text="formatUSD(simContadoProfit())"></span>
+                                </div>
+                            </div>
+
+                            <!-- Credit Card (+15% BCV) -->
+                            <div class="bg-nacar-main text-nacar-pink border border-nacar-main rounded-2xl p-4 space-y-2 shadow-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[11px] font-bold text-nacar-pink uppercase tracking-wider">Precio Crédito (+15% BCV)</span>
+                                    <span class="text-[10px] bg-white text-nacar-main px-2 py-0.5 rounded font-bold">7 Días / Cobro el 15</span>
+                                </div>
+                                <div class="text-3xl font-extrabold text-white" x-text="formatUSD(simCreditPrice())"></div>
+                                <div class="pt-2 border-t border-white/20 flex justify-between items-center text-xs">
+                                    <span class="text-nacar-pink/80">Ganancia Neta Crédito:</span>
+                                    <span class="font-bold text-emerald-300" x-text="formatUSD(simCreditProfit())"></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-nacar-main/80 flex items-center justify-between border-t border-nacar-main/15 pt-3">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-nacar-main"></i> 
+                            Protección Cambiaria: Toda entrega a crédito aplica el <strong>+15% obligatorio</strong> sobre el precio contado.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: REAL INVENTORY & LOT MANAGEMENT -->
+        <div x-show="activeTab === 'inventory'" class="space-y-6" x-cloak>
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-nacar-main flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-nacar-main"></i> Inventario Real de Nácar Store & Trazabilidad
+                        </h3>
+                        <p class="text-xs text-nacar-main/70">Monitoreo de Stock Físico, Lotes en Tránsito (Lote 2) e Ítems Entregados a Crédito.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="openNewItemModal = true" class="bg-nacar-main hover:bg-nacar-main/90 text-nacar-pink font-bold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-plus"></i> Registrar Nuevo SKU
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-nacar-main/20 text-[11px] text-nacar-main/70 uppercase tracking-wider bg-nacar-soft">
+                                <th class="py-3 px-4">Producto / SKU</th>
+                                <th class="py-3 px-4">Lote Orig.</th>
+                                <th class="py-3 px-4">Estado Actual</th>
+                                <th class="py-3 px-4 text-center">Cant.</th>
+                                <th class="py-3 px-4 text-right">Costo Base</th>
+                                <th class="py-3 px-4 text-right">Costo Real Landed</th>
+                                <th class="py-3 px-4 text-right">P. Contado</th>
+                                <th class="py-3 px-4 text-right">P. Crédito (+15%)</th>
+                                <th class="py-3 px-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-nacar-main/10 text-xs sm:text-sm">
+                            <template x-for="(item, index) in inventory" :key="index">
+                                <tr class="hover:bg-nacar-soft/50 transition-colors">
+                                    <td class="py-3.5 px-4 font-bold text-nacar-main">
+                                        <div x-text="item.name"></div>
+                                        <span class="text-[10px] text-nacar-main/60 font-medium" x-text="item.category"></span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-nacar-main/80 font-mono text-xs" x-text="item.batch"></td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                              :class="{
+                                                  'bg-emerald-100 text-emerald-800 border border-emerald-300': item.status === 'Stock',
+                                                  'bg-purple-100 text-purple-800 border border-purple-200': item.status === 'En Tránsito',
+                                                  'bg-rose-100 text-rose-800 border border-rose-200': item.status === 'Crédito Pendiente',
+                                                  'bg-slate-100 text-slate-700': item.status === 'Vendido'
+                                              }" 
+                                              x-text="item.status"></span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center font-bold text-nacar-main" x-text="item.qty"></td>
+                                    <td class="py-3.5 px-4 text-right text-nacar-main/70 font-mono" x-text="formatUSD(item.fob)"></td>
+                                    <td class="py-3.5 px-4 text-right font-extrabold text-nacar-main font-mono" x-text="formatUSD(item.landed)"></td>
+                                    <td class="py-3.5 px-4 text-right text-emerald-700 font-bold font-mono" x-text="formatUSD(item.contado)"></td>
+                                    <td class="py-3.5 px-4 text-right text-rose-700 font-bold font-mono" x-text="formatUSD(item.credit)"></td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <template x-if="item.qty > 0 && item.status !== 'Crédito Pendiente'">
+                                                <button @click="sellItem(index)" title="Registrar Venta Contado" class="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-all">
+                                                    <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                                </button>
+                                            </template>
+                                            <button @click="deleteItem(index)" title="Eliminar SKU" class="p-1.5 rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-200 transition-all">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 p-3 bg-nacar-soft rounded-xl border border-nacar-main/15 text-xs text-nacar-main/80 flex flex-col sm:flex-row justify-between gap-2">
+                    <span>* <strong>Lote 2 (Reinversión en Tránsito):</strong> Inversión total $75.50 amortizada con flete real prorrateado al ~11.85%.</span>
+                    <span class="text-nacar-main font-bold">Control de Lotes Activos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: ACCOUNTS RECEIVABLE & BCV RECONCILIATION -->
+        <div x-show="activeTab === 'sales'" class="space-y-6" x-cloak>
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-nacar-main flex items-center gap-2">
+                            <i class="fa-solid fa-cash-register text-nacar-main"></i> Histórico de Ventas & Cuentas por Cobrar (Aging)
+                        </h3>
+                        <p class="text-xs text-nacar-main/70">Conciliación de Pagos a Tasa BCV Oficial y Control de Saldo Quincenal.</p>
+                    </div>
+                    <div class="bg-nacar-soft border border-nacar-main/20 rounded-xl px-4 py-2 text-xs flex items-center gap-3">
+                        <i class="fa-solid fa-calendar-check text-nacar-main text-base"></i>
+                        <div>
+                            <span class="text-[10px] uppercase text-nacar-main/70 block font-bold">Corte Oficial de Cobro</span>
+                            <span class="text-nacar-main font-extrabold">15 de Cada Mes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Table -->
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-nacar-main/20 text-[11px] text-nacar-main/70 uppercase tracking-wider bg-nacar-soft">
+                                <th class="py-3 px-4">Cliente / Comprador</th>
+                                <th class="py-3 px-4">Producto Vendido</th>
+                                <th class="py-3 px-4">Modalidad</th>
+                                <th class="py-3 px-4 text-right">Monto Total ($)</th>
+                                <th class="py-3 px-4 text-right">Monto en Bs (BCV Hoy)</th>
+                                <th class="py-3 px-4 text-center">Estado Cobro</th>
+                                <th class="py-3 px-4 text-center">Conciliación / Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-nacar-main/10 text-xs sm:text-sm">
+                            <template x-for="(sale, index) in salesList" :key="index">
+                                <tr class="hover:bg-nacar-soft/50 transition-colors">
+                                    <td class="py-3.5 px-4 font-bold text-nacar-main" x-text="sale.client"></td>
+                                    <td class="py-3.5 px-4 text-nacar-main/80" x-text="sale.product"></td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                                              :class="sale.type === 'Contado' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-nacar-main text-nacar-pink'"
+                                              x-text="sale.type"></span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-bold text-nacar-main font-mono" x-text="formatUSD(sale.amount)"></td>
+                                    <td class="py-3.5 px-4 text-right font-extrabold text-nacar-main font-mono" x-text="formatVES(sale.amount * bcvRate)"></td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                              :class="sale.paid ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'"
+                                              x-text="sale.paid ? 'Cobrado / Liquidado' : 'Pendiente al 15'"></span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        <template x-if="!sale.paid">
+                                            <button @click="markAsPaid(index)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all shadow-sm">
+                                                Registrar Pago en Bs. (Tasa BCV)
+                                            </button>
+                                        </template>
+                                        <template x-if="sale.paid">
+                                            <span class="text-xs text-emerald-700 font-bold italic flex items-center justify-center gap-1">
+                                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Conciliado
+                                            </span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Callout Box: 15th Cut-off Reminder -->
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-bell text-rose-600 text-xl"></i>
+                        <div>
+                            <h4 class="text-xs font-bold text-rose-900">Regla de Liquidación al 15 del Mes</h4>
+                            <p class="text-[11px] text-rose-800">
+                                Toda venta entregada a crédito se liquida a la <strong>Tasa BCV oficial publicada ese mismo día</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-rose-700 whitespace-nowrap bg-white px-3 py-1 rounded-lg border border-rose-200" x-text="'Pendiente: ' + formatUSD(totalAccountsReceivable())"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: INTERACTIVE CAPITAL & MARGIN CHARTS -->
+        <div x-show="activeTab === 'analytics'" class="space-y-6" x-cloak>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Chart 1: Margins by Product Category -->
+                <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-column text-nacar-main"></i> Margen Bruto Real por Categoría
+                                </h3>
+                                <p class="text-xs text-nacar-main/70">Comparativo del % de rentabilidad tras Landed Cost.</p>
+                            </div>
+                            <button @click="showTooltip('chart1')" class="text-nacar-main/50 hover:text-nacar-main">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="relative h-64 sm:h-72 w-full">
+                            <canvas id="marginChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-nacar-main/15 text-[11px] text-nacar-main/80 flex justify-between">
+                        <span>Mayor Margen: <strong>Topos / Zarcillos (83%)</strong></span>
+                        <span class="text-emerald-700 font-bold">Rentabilidad Saludable</span>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Capital Allocation -->
+                <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-nacar-main"></i> Distribución del Capital Total Nácar
+                                </h3>
+                                <p class="text-xs text-nacar-main/70">Repartición del patrimonio entre Caja, Créditos e Inventarios.</p>
+                            </div>
+                            <button @click="showTooltip('chart2')" class="text-nacar-main/50 hover:text-nacar-main">
+                                <i class="fa-solid fa-circle-info text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="relative h-64 sm:h-72 w-full flex justify-center items-center">
+                            <canvas id="capitalChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-nacar-main/15 text-[11px] text-nacar-main/80 flex justify-between">
+                        <span>Inmovilizado en Camino: <strong class="text-purple-700" x-text="formatUSD(transitInventoryValue())"></strong></span>
+                        <span class="text-emerald-700 font-bold">Liquidez Positiva</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 5: OPERATIONAL MANUAL & NON-NEGOTIABLE RULES -->
+        <div x-show="activeTab === 'guide'" class="space-y-6" x-cloak>
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm space-y-6">
+                <div>
+                    <h3 class="text-xl font-extrabold text-nacar-main flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-book-bookmark text-nacar-main"></i> Manual Operativo & Reglas Financieras de Nácar Store
+                    </h3>
+                    <p class="text-xs text-nacar-main/70">Guía estratégica y directrices de cumplimiento obligatorio para los socios y fundadores.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Rule 1 -->
+                    <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3 relative overflow-hidden group hover:border-nacar-main transition-all">
+                        <div class="w-9 h-9 rounded-xl bg-nacar-main text-nacar-pink flex items-center justify-center font-extrabold text-base">
+                            1
+                        </div>
+                        <h4 class="text-sm font-bold text-nacar-main">Regla del 15% de Recargo a Crédito</h4>
+                        <p class="text-xs text-nacar-main/80 leading-relaxed">
+                            Cualquier entrega otorgada a crédito (máximo 7 días o con vencimiento al 15 del mes) lleva un <strong>recargo fijo e irrenunciable del +15%</strong> sobre el precio base de contado. Esta regla blinda al negocio contra la depreciación del Bolívar y asegura la reposición de la mercancía.
+                        </p>
+                    </div>
+
+                    <!-- Rule 2 -->
+                    <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3 relative overflow-hidden group hover:border-nacar-main transition-all">
+                        <div class="w-9 h-9 rounded-xl bg-nacar-main text-nacar-pink flex items-center justify-center font-extrabold text-base">
+                            2
+                        </div>
+                        <h4 class="text-sm font-bold text-nacar-main">Cálculo Obligatorio del Landed Cost</h4>
+                        <p class="text-xs text-nacar-main/80 leading-relaxed">
+                            El costo de un producto NUNCA es solo su valor de fábrica (FOB). Siempre se debe sumar la alícuota de flete e impuestos prorrateados. 
+                            <br><span class="text-nacar-main font-bold">Ejemplo Lote 1:</span> $9.80 FOB + $1.12 Flete = <strong>$10.92 Costo Real</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Rule 3 -->
+                    <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3 relative overflow-hidden group hover:border-nacar-main transition-all">
+                        <div class="w-9 h-9 rounded-xl bg-nacar-main text-nacar-pink flex items-center justify-center font-extrabold text-base">
+                            3
+                        </div>
+                        <h4 class="text-sm font-bold text-nacar-main">Corte de Caja y Tasa BCV Oficial</h4>
+                        <p class="text-xs text-nacar-main/80 leading-relaxed">
+                            Todas las ventas a crédito pendientes se cobran de manera estricta el <strong>día 15 de cada mes</strong> multiplicando el saldo en dólares ($) por la <strong>Tasa BCV del día exacto del pago</strong>. Las ventas de contado en divisas (Zelle/Efectivo) se destinan directamente a la reinversión del próximo Lote.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Workflow Step-by-Step -->
+                <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3">
+                    <h4 class="text-sm font-bold text-nacar-main flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i> Paso a Paso para Registrar una Venta Diaria
+                    </h4>
+                    <ol class="list-decimal list-inside text-xs text-nacar-main/80 space-y-2 leading-relaxed">
+                        <li>Ingresa a la pestaña <strong>2. Inventario Real</strong> y ubica el producto correspondiente.</li>
+                        <li>Si el cliente paga en <strong>Efectivo o Zelle</strong>, presiona el botón de carrito (<i class="fa-solid fa-cart-shopping text-emerald-700"></i>) para descontar la unidad y registrar el ingreso en caja.</li>
+                        <li>Si la venta es a <strong>Crédito</strong>, calcula el precio final con el recargo del +15% en la <strong>1. Calculadora</strong>, solicita una inicial mínima del 30%-50% y anota el compromiso de pago con fecha tope del 15.</li>
+                        <li>El día 15, dirígete a la pestaña <strong>3. Cuentas por Cobrar</strong> y presiona "Registrar Pago en Bs." para saldar la cuenta a la Tasa BCV del día.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- NEW SKU MODAL -->
+    <div x-show="openNewItemModal" class="fixed inset-0 bg-nacar-main/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white border border-nacar-main/20 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-nacar-main/15 pb-3">
+                <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-nacar-main"></i> Registrar Nuevo SKU en Inventario
+                </h3>
+                <button @click="openNewItemModal = false" class="text-nacar-main/60 hover:text-nacar-main">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-nacar-main/80 mb-1">Nombre del Producto</label>
+                    <input type="text" x-model="newItem.name" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main" placeholder="Ej. Cadena Baño de Oro 18k">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Categoría / Lote</label>
+                        <input type="text" x-model="newItem.batch" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main" placeholder="Lote 3">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Estado Inicial</label>
+                        <select x-model="newItem.status" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main">
+                            <option value="Stock">Stock Físico</option>
+                            <option value="En Tránsito">En Tránsito</option>
+                            <option value="Crédito Pendiente">Crédito Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Unidades</label>
+                        <input type="number" x-model.number="newItem.qty" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main text-right font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Costo Base FOB ($)</label>
+                        <input type="number" step="0.01" x-model.number="newItem.fob" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main text-right font-bold">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-nacar-main/15">
+                <button @click="openNewItemModal = false" class="px-4 py-2 rounded-xl bg-nacar-soft text-nacar-main hover:bg-nacar-main/10 text-xs font-semibold">Cancelar</button>
+                <button @click="addNewItem()" class="px-4 py-2 rounded-xl bg-nacar-main text-nacar-pink font-bold text-xs shadow-sm">Guardar SKU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDUCATIONAL TOOLTIP MODAL -->
+    <div x-show="activeTooltipModal" class="fixed inset-0 bg-nacar-main/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-white border border-nacar-main/20 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-nacar-main/15 pb-3">
+                <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> Explicación Financiera Nácar
+                </h3>
+                <button @click="activeTooltipModal = null" class="text-nacar-main/60 hover:text-nacar-main">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <h4 class="text-sm font-bold text-nacar-main" x-text="tooltipData[activeTooltipModal]?.title"></h4>
+                <p class="text-xs text-nacar-main/80 leading-relaxed" x-text="tooltipData[activeTooltipModal]?.desc"></p>
+                <div class="bg-nacar-soft p-3.5 rounded-xl border border-nacar-main/15 space-y-1.5">
+                    <span class="text-[10px] text-nacar-main font-bold uppercase tracking-wider block">Decisión Estratégica Recomendada:</span>
+                    <p class="text-xs text-emerald-800 font-semibold" x-text="tooltipData[activeTooltipModal]?.action"></p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button @click="activeTooltipModal = null" class="px-4 py-2 rounded-xl bg-nacar-main text-nacar-pink font-bold text-xs">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALPINE.JS APPLICATION LOGIC & DATA -->
+    <script>
+        function nacarDashboard() {
+            return {
+                activeTab: 'calculator',
+                bcvRate: 36.50,
+                openNewItemModal: false,
+                activeTooltipModal: null,
+                daysToNext15: 12,
+
+                // Lot Calculator inputs
+                calcName: 'Set Reloj Vintage Acero',
+                calcLotTotal: 61.00,
+                calcLotFreight: 7.00,
+                calcFOB: 9.80,
+                calcMarkup: 83,
+
+                newItem: {
+                    name: '',
+                    batch: 'Lote 3',
+                    status: 'Stock',
+                    qty: 1,
+                    fob: 5.00
+                },
+
+                // Real Data Set based on Prompt Specifications
+                inventory: [
+                    { name: 'Set Reloj Vintage', category: 'Relojes', batch: 'Lote 1 (Octubre)', status: 'Stock', qty: 1, fob: 9.80, landed: 10.92, contado: 20.00, credit: 23.00 },
+                    { name: 'Topos / Zarcillos Acero', category: 'Zarcillos', batch: 'Lote 1 (Octubre)', status: 'Stock', qty: 4, fob: 1.20, landed: 1.34, contado: 6.00, credit: 6.90 },
+                    { name: 'Pulsera Sencilla Acero', category: 'Pulseras', batch: 'Lote 1 (Octubre)', status: 'Stock', qty: 2, fob: 2.50, landed: 2.79, contado: 7.00, credit: 8.05 },
+                    { name: 'Set Reloj Vintage (Entregado)', category: 'Relojes', batch: 'Lote 1 (Crédito)', status: 'Crédito Pendiente', qty: 1, fob: 9.80, landed: 10.92, contado: 20.00, credit: 23.00 },
+                    { name: 'Topos Lote 2 (En Tránsito)', category: 'Zarcillos', batch: 'Lote 2 (Tránsito)', status: 'En Tránsito', qty: 20, fob: 1.00, landed: 1.12, contado: 4.50, credit: 5.18 },
+                    { name: 'Reloj Solo ($4 Lote 2)', category: 'Relojes', batch: 'Lote 2 (Tránsito)', status: 'En Tránsito', qty: 3, fob: 4.00, landed: 4.47, contado: 9.00, credit: 10.35 },
+                    { name: 'Reloj Solo ($5 Lote 2)', category: 'Relojes', batch: 'Lote 2 (Tránsito)', status: 'En Tránsito', qty: 5, fob: 5.00, landed: 5.59, contado: 11.00, credit: 12.65 },
+                    { name: 'Pulsera Doble Acero (Tránsito)', category: 'Pulseras', batch: 'Lote 2 (Tránsito)', status: 'En Tránsito', qty: 3, fob: 3.50, landed: 3.91, contado: 8.00, credit: 9.20 }
+                ],
+
+                salesList: [
+                    { client: 'Cliente Crédito Quincenal', product: 'Set Reloj Vintage', type: 'Crédito BCV', amount: 23.00, paid: false },
+                    { client: 'Venta Directa Contado', product: 'Topos Zarcillos (x6)', type: 'Contado', amount: 36.00, paid: true },
+                    { client: 'Venta Directa Contado', product: 'Set Reloj Vintage (x4)', type: 'Contado', amount: 80.00, paid: true }
+                ],
+
+                tooltipData: {
+                    kpi1: {
+                        title: "¿Qué representa el Ingreso Total Recaudado?",
+                        desc: "Es el dinero real en efectivo, Zelle o Bolívares cobrados que ya ingresaron a las cuentas de Nácar Store. No incluye cuentas por cobrar.",
+                        action: "Si este número aumenta, tienes liquidez suficiente para financiar la compra del próximo Lote sin endeudarte."
+                    },
+                    kpi2: {
+                        title: "¿Qué representa el Margen de Contribución Bruto?",
+                        desc: "Es la ganancia limpia que le queda al negocio después de restarle al precio de venta el costo real landed (compra + flete).",
+                        action: "Mantén este margen por encima del 70%. Si baja del 60%, revisa el costo del flete o incrementa el markup."
+                    },
+                    kpi3: {
+                        title: "¿Qué representan las Cuentas por Cobrar?",
+                        desc: "Es el capital entregado a clientes bajo la modalidad de Crédito a 7 Días. Incluye el recargo obligatorio del 15% que se cobrará en Bolívares a la Tasa BCV oficial del día 15.",
+                        action: "El día 15 envía los recordatorios de cobro a primera hora para liquidar antes del cierre de mercado."
+                    },
+                    kpi4: {
+                        title: "¿Qué representa el Valor Total de Inventario?",
+                        desc: "Es el valor total a Costo Landed de toda la mercancía en nuestro poder (física en stock) más la que está viajando actualmente (Lote 2 en Tránsito por $75.50).",
+                        action: "Asegúrate de rotar primero el stock físico antes de liberar la venta del lote en tránsito."
+                    },
+                    landed_rule: {
+                        title: "¿Por qué se calcula el Landed Cost?",
+                        desc: "Comprar un producto a $9.80 no significa que ese sea su costo real. El envío cuesta dinero ($7.00 en Lote 1, $8.00 en Lote 2). Prorratear el flete por unidad protege la utilidad neta real.",
+                        action: "Nunca calcules precios de venta basados solo en el costo FOB de fábrica."
+                    },
+                    chart1: {
+                        title: "Análisis de Márgenes por Categoría",
+                        desc: "Muestra cuál línea de producto deja mayor margen porcentual sobre su costo real landed.",
+                        action: "Los topos y zarcillos tienen el mayor porcentaje de ganancia rápida. Úsalos como ganchos de venta."
+                    },
+                    chart2: {
+                        title: "Composición Patrimonial del Capital",
+                        desc: "Visualiza dónde está metido cada dólar de Nácar Store: en caja, en la calle cobrándose, en repisas o viajando en transporte.",
+                        action: "Busca siempre que el 'Inventario Físico' no supere el 50% del capital total para evitar acumulación."
+                    }
+                },
+
+                // Lot Calculator Formulas
+                calcFreightFactor() {
+                    if (!this.calcLotTotal || this.calcLotTotal <= 0) return 0;
+                    return (this.calcLotFreight / this.calcLotTotal) * 100;
+                },
+                calcUnitFreightAliquot() {
+                    return (this.calcFOB * (this.calcFreightFactor() / 100));
+                },
+                simLandedCost() {
+                    return parseFloat((this.calcFOB + this.calcUnitFreightAliquot()).toFixed(2));
+                },
+                simContadoPrice() {
+                    const cost = this.simLandedCost();
+                    return parseFloat((cost * (1 + (this.calcMarkup || 0) / 100)).toFixed(2));
+                },
+                simContadoProfit() {
+                    return parseFloat((this.simContadoPrice() - this.simLandedCost()).toFixed(2));
+                },
+                simCreditPrice() {
+                    return parseFloat((this.simContadoPrice() * 1.15).toFixed(2));
+                },
+                simCreditProfit() {
+                    return parseFloat((this.simCreditPrice() - this.simLandedCost()).toFixed(2));
+                },
+
+                // KPI Computations
+                totalRealizedRevenue() {
+                    return this.salesList.filter(s => s.paid).reduce((acc, s) => acc + s.amount, 0);
+                },
+                totalGrossMargin() {
+                    return 84.50; 
+                },
+                averageGrossMarginPercentage() {
+                    return 78.2;
+                },
+                totalAccountsReceivable() {
+                    return this.salesList.filter(s => !s.paid).reduce((acc, s) => acc + s.amount, 0);
+                },
+                stockInventoryValue() {
+                    return this.inventory.filter(i => i.status === 'Stock').reduce((acc, i) => acc + (i.landed * i.qty), 0);
+                },
+                transitInventoryValue() {
+                    return this.inventory.filter(i => i.status === 'En Tránsito').reduce((acc, i) => acc + (i.landed * i.qty), 0);
+                },
+                totalInventoryValue() {
+                    return this.stockInventoryValue() + this.transitInventoryValue();
+                },
+
+                formatUSD(val) {
+                    return '$' + Number(val || 0).toFixed(2);
+                },
+                formatVES(val) {
+                    return 'Bs. ' + (Number(val || 0)).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                },
+
+                showTooltip(key) {
+                    this.activeTooltipModal = key;
+                },
+
+                saveCalculatedToInventory() {
+                    this.inventory.push({
+                        name: this.calcName || 'Nuevo Producto Lote',
+                        category: 'General',
+                        batch: 'Lote Calculado',
+                        status: 'Stock',
+                        qty: 1,
+                        fob: this.calcFOB,
+                        landed: this.simLandedCost(),
+                        contado: this.simContadoPrice(),
+                        credit: this.simCreditPrice()
+                    });
+                    this.activeTab = 'inventory';
+                },
+
+                addNewItem() {
+                    const landed = parseFloat((this.newItem.fob * 1.1185).toFixed(2));
+                    const contado = parseFloat((landed * 1.8).toFixed(2));
+                    const credit = parseFloat((contado * 1.15).toFixed(2));
+                    this.inventory.push({
+                        name: this.newItem.name || 'Nuevo Accesorio',
+                        category: 'Accesorios',
+                        batch: this.newItem.batch,
+                        status: this.newItem.status,
+                        qty: this.newItem.qty,
+                        fob: this.newItem.fob,
+                        landed: landed,
+                        contado: contado,
+                        credit: credit
+                    });
+                    this.openNewItemModal = false;
+                    this.newItem.name = '';
+                },
+
+                sellItem(index) {
+                    const item = this.inventory[index];
+                    if (item.qty > 0) {
+                        item.qty -= 1;
+                        this.salesList.push({
+                            client: 'Cliente Directo Nácar',
+                            product: item.name,
+                            type: 'Contado',
+                            amount: item.contado,
+                            paid: true
+                        });
+                        if (item.qty === 0) item.status = 'Vendido';
+                    }
+                },
+
+                markAsPaid(index) {
+                    this.salesList[index].paid = true;
+                },
+
+                deleteItem(index) {
+                    this.inventory.splice(index, 1);
+                },
+
+                initDashboard() {
+                    this.$nextTick(() => {
+                        initChartJS();
+                    });
+                }
+            }
+        }
+
+        function initChartJS() {
+            const ctx1 = document.getElementById('marginChart')?.getContext('2d');
+            if (ctx1) {
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Relojes', 'Topos / Zarcillos', 'Pulseras Acero', 'Accesorios Trend'],
+                        datasets: [{
+                            label: '% Margen Bruto Real',
+                            data: [76, 83, 72, 78],
+                            backgroundColor: '#452F51',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: 'rgba(69, 47, 81, 0.1)' }, ticks: { color: '#452F51' } },
+                            x: { grid: { display: false }, ticks: { color: '#452F51' } }
+                        }
+                    }
+                });
+            }
+
+            const ctx2 = document.getElementById('capitalChart')?.getContext('2d');
+            if (ctx2) {
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Stock Físico ($21.84)', 'Tránsito Lote 2 ($75.50)', 'Cuentas x Cobrar ($23.00)', 'Caja Real ($116.00)'],
+                        datasets: [{
+                            data: [21.84, 75.50, 23.00, 116.00],
+                            backgroundColor: ['#452F51', '#8b5cf6', '#e11d48', '#059669'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#452F51', font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
