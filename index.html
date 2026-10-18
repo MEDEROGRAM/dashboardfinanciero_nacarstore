@@ -1197,12 +1197,8 @@
                     const item = this.salesList[index];
                     
                     const payload = {
+                        action: "updateStatus",
                         sku: item.product,
-                        tipo: "Venta",
-                        costoLanded: parseFloat((item.amount * 0.4).toFixed(2)),
-                        precioVenta: item.amount,
-                        metodoPago: item.type,
-                        tasaBcv: this.bcvRate,
                         estado: "Completado"
                     };
 
