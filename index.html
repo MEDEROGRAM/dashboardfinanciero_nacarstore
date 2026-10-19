@@ -55,22 +55,22 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 transform translate-y-0"
          x-transition:leave-end="opacity-0 transform translate-y-[-20px]"
-         class="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-bold text-white border"
+         class="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-bold text-white border max-w-sm sm:max-w-md"
          :class="{
             'bg-nacar-main border-nacar-pink/30': toast.type === 'sync',
             'bg-emerald-600 border-emerald-400': toast.type === 'success',
             'bg-rose-600 border-rose-400': toast.type === 'error'
          }" x-cloak>
         <template x-if="toast.type === 'sync'">
-            <i class="fa-solid fa-arrows-rotate animate-spin text-sm"></i>
+            <i class="fa-solid fa-arrows-rotate animate-spin text-sm shrink-0"></i>
         </template>
         <template x-if="toast.type === 'success'">
-            <i class="fa-solid fa-circle-check text-sm"></i>
+            <i class="fa-solid fa-circle-check text-sm shrink-0"></i>
         </template>
         <template x-if="toast.type === 'error'">
-            <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+            <i class="fa-solid fa-triangle-exclamation text-sm shrink-0"></i>
         </template>
-        <span x-text="toast.message"></span>
+        <span x-text="toast.message" class="leading-tight"></span>
     </div>
 
     <!-- EXECUTIVE HEADER WITH OFFICIAL PUBLIC LOGO -->
@@ -213,10 +213,10 @@
                         </span>
                     </div>
                     <div class="text-2xl sm:text-3xl font-extrabold text-nacar-main tracking-tight mb-1" x-text="formatUSD(totalInventoryValue())"></div>
-                    <div class="text-xs font-semibold text-nacar-main/80" x-text="formatUSD(transitInventoryValue()) + ' en Tránsito (Lote 2)'"></div>
+                    <div class="text-xs font-semibold text-nacar-main/80" x-text="formatUSD(transitInventoryValue()) + ' en Tránsito'"></div>
                 </div>
                 <div class="mt-3 pt-2.5 border-t border-nacar-main/10 text-[11px] text-nacar-main/70 flex justify-between items-center">
-                    <span>Stock Físico + Tránsito</span>
+                    <span>Stock En Mano vs Tránsito</span>
                     <span class="text-nacar-main font-bold" x-text="formatUSD(stockInventoryValue()) + ' en Mano'"></span>
                 </div>
             </div>
@@ -227,7 +227,7 @@
             <button @click="activeTab = 'calculator'" 
                     :class="activeTab === 'calculator' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
                     class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-calculator"></i> 1. Calculadora de Lotes & Costo Landed
+                <i class="fa-solid fa-calculator"></i> 1. Calculadora Lotes & Landed Cost
             </button>
             <button @click="activeTab = 'inventory'" 
                     :class="activeTab === 'inventory' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
@@ -239,15 +239,20 @@
                     class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-cash-register"></i> 3. Cuentas por Cobrar & Conciliación
             </button>
+            <button @click="activeTab = 'cashflow'" 
+                    :class="activeTab === 'cashflow' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-money-bill-transfer"></i> 4. Flujo de Caja & Bancos
+            </button>
             <button @click="activeTab = 'analytics'" 
                     :class="activeTab === 'analytics' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
                     class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-chart-pie"></i> 4. Gráficos de Capital & Márgenes
+                <i class="fa-solid fa-chart-pie"></i> 5. Gráficos de Capital & Márgenes
             </button>
             <button @click="activeTab = 'guide'" 
                     :class="activeTab === 'guide' ? 'bg-nacar-main text-nacar-pink font-bold shadow-md' : 'bg-white text-nacar-main hover:bg-nacar-soft font-semibold border border-nacar-main/10'" 
                     class="px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-book-bookmark"></i> 5. Manual Operativo & Reglas
+                <i class="fa-solid fa-book-bookmark"></i> 6. Manual Operativo & Reglas
             </button>
         </div>
 
@@ -331,7 +336,7 @@
                             </button>
                         </div>
 
-                        <!-- DYNAMIC EDUCATIONAL BREAKDOWN CARD ("¿Cómo se calculó tu Costo Real?") -->
+                        <!-- DYNAMIC EDUCATIONAL BREAKDOWN CARD -->
                         <div class="bg-nacar-soft border border-nacar-main/20 rounded-2xl p-5 space-y-3.5">
                             <div class="flex items-center justify-between border-b border-nacar-main/15 pb-2.5">
                                 <h4 class="text-xs font-extrabold text-nacar-main uppercase tracking-wider flex items-center gap-2">
@@ -414,15 +419,15 @@
             </div>
         </div>
 
-        <!-- TAB 2: REAL INVENTORY & LOT MANAGEMENT -->
+        <!-- TAB 2: REAL INVENTORY & LIVE DROPDOWN STATUS SELECTION -->
         <div x-show="activeTab === 'inventory'" class="space-y-6" x-cloak>
             <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <h3 class="text-lg font-bold text-nacar-main flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-stacked text-nacar-main"></i> Inventario Real de Nácar Store & Trazabilidad
+                            <i class="fa-solid fa-boxes-stacked text-nacar-main"></i> Inventario Real de Nácar Store & Selector en Vivo
                         </h3>
-                        <p class="text-xs text-nacar-main/70">Monitoreo de Stock Físico, Lotes en Tránsito (Lote 2) e Ítems Entregados a Crédito.</p>
+                        <p class="text-xs text-nacar-main/70">Cambia el estado de cualquier SKU directamente en la tabla para actualizar Google Sheets y reajustar los KPIs.</p>
                     </div>
                     <div class="flex gap-2">
                         <button @click="openNewItemModal = true" class="bg-nacar-main hover:bg-nacar-main/90 text-nacar-pink font-bold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shadow-sm">
@@ -438,7 +443,7 @@
                             <tr class="border-b border-nacar-main/20 text-[11px] text-nacar-main/70 uppercase tracking-wider bg-nacar-soft">
                                 <th class="py-3 px-4">Producto / SKU</th>
                                 <th class="py-3 px-4">Lote Orig.</th>
-                                <th class="py-3 px-4">Estado Actual</th>
+                                <th class="py-3 px-4">Estado Actual (Selector Live)</th>
                                 <th class="py-3 px-4 text-center">Cant.</th>
                                 <th class="py-3 px-4 text-right">Costo Base</th>
                                 <th class="py-3 px-4 text-right">Costo Real Landed</th>
@@ -455,16 +460,25 @@
                                         <span class="text-[10px] text-nacar-main/60 font-medium" x-text="item.category"></span>
                                     </td>
                                     <td class="py-3.5 px-4 text-nacar-main/80 font-mono text-xs" x-text="item.batch"></td>
+                                    
+                                    <!-- INTERACTIVE DROPDOWN STATUS SELECTOR -->
                                     <td class="py-3.5 px-4">
-                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                                              :class="{
-                                                  'bg-emerald-100 text-emerald-800 border border-emerald-300': item.status === 'Stock',
-                                                  'bg-purple-100 text-purple-800 border border-purple-200': item.status === 'En Tránsito',
-                                                  'bg-rose-100 text-rose-800 border border-rose-200': item.status === 'Crédito Pendiente',
-                                                  'bg-slate-100 text-slate-700': item.status === 'Vendido'
-                                              }" 
-                                              x-text="item.status"></span>
+                                        <select :value="item.status" 
+                                                @change="updateItemStatus(index, $event.target.value)"
+                                                class="px-2.5 py-1 rounded-xl text-xs font-bold border focus:outline-none focus:ring-2 focus:ring-nacar-main transition-all cursor-pointer"
+                                                :class="{
+                                                    'bg-emerald-100 text-emerald-800 border-emerald-300': item.status === 'Stock' || item.status === 'En Stock',
+                                                    'bg-purple-100 text-purple-800 border-purple-300': item.status === 'En Tránsito',
+                                                    'bg-rose-100 text-rose-800 border-rose-300': item.status === 'Crédito Pendiente',
+                                                    'bg-slate-100 text-slate-700 border-slate-300': item.status === 'Vendido'
+                                                }">
+                                            <option value="En Tránsito" :selected="item.status === 'En Tránsito'">✈️ En Tránsito</option>
+                                            <option value="Stock" :selected="item.status === 'Stock' || item.status === 'En Stock'">📦 En Stock</option>
+                                            <option value="Crédito Pendiente" :selected="item.status === 'Crédito Pendiente'">⏳ Crédito Pendiente</option>
+                                            <option value="Vendido" :selected="item.status === 'Vendido'">✅ Vendido</option>
+                                        </select>
                                     </td>
+
                                     <td class="py-3.5 px-4 text-center font-bold text-nacar-main" x-text="item.qty"></td>
                                     <td class="py-3.5 px-4 text-right text-nacar-main/70 font-mono" x-text="formatUSD(item.fob)"></td>
                                     <td class="py-3.5 px-4 text-right font-extrabold text-nacar-main font-mono" x-text="formatUSD(item.landed)"></td>
@@ -489,7 +503,7 @@
                 </div>
 
                 <div class="mt-4 p-3 bg-nacar-soft rounded-xl border border-nacar-main/15 text-xs text-nacar-main/80 flex flex-col sm:flex-row justify-between gap-2">
-                    <span>* <strong>Lote 2 (Reinversión en Tránsito):</strong> Inversión total $75.50 amortizada con flete real prorrateado al ~11.85%.</span>
+                    <span>* <strong>Sincronización Inteligente:</strong> Al cambiar el estado de un SKU, se envía un comando <code>updateStatus</code> a Google Sheets y se recalculan los valores de Stock en Mano vs. Tránsito en tiempo real.</span>
                     <span class="text-nacar-main font-bold">Control de Lotes Activos</span>
                 </div>
             </div>
@@ -584,7 +598,147 @@
             </div>
         </div>
 
-        <!-- TAB 4: INTERACTIVE CAPITAL & MARGIN CHARTS -->
+        <!-- TAB 4: NEW CASH FLOW & BANK MOVEMENTS MODULE (CONTROL DE PLATA) -->
+        <div x-show="activeTab === 'cashflow'" class="space-y-6" x-cloak>
+            
+            <!-- SECTION B: TREASURY BALANCE CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                
+                <!-- Card 1: Saldo Disponible -->
+                <div class="bg-white border border-nacar-main/15 rounded-2xl p-5 shadow-sm space-y-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-nacar-main/70 uppercase">
+                        <span>Saldo Disponible en Caja</span>
+                        <i class="fa-solid fa-money-bill-wave text-emerald-600"></i>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-700" x-text="formatUSD(cashFlowBalanceUSD())"></div>
+                    <div class="text-xs font-bold text-nacar-main/80" x-text="'≈ ' + formatVES(cashFlowBalanceUSD() * bcvRate)"></div>
+                    <p class="text-[10px] text-nacar-main/60 pt-1 border-t border-nacar-main/10">Suma total de cuentas menos gastos acumulados.</p>
+                </div>
+
+                <!-- Card 2: Total Gastos Mes -->
+                <div class="bg-white border border-rose-200 rounded-2xl p-5 shadow-sm space-y-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-rose-800 uppercase">
+                        <span>Gastos Operativos & Fletes</span>
+                        <i class="fa-solid fa-arrow-trend-down text-rose-600"></i>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-rose-600" x-text="formatUSD(cashFlowTotalExpensesUSD())"></div>
+                    <div class="text-xs font-bold text-rose-700" x-text="'≈ ' + formatVES(cashFlowTotalExpensesUSD() * bcvRate)"></div>
+                    <p class="text-[10px] text-rose-800/70 pt-1 border-t border-rose-100">Fletes MRW, empaques, comisiones y logística.</p>
+                </div>
+
+                <!-- Card 3: Margen Neto Caja -->
+                <div class="bg-nacar-main text-nacar-pink rounded-2xl p-5 shadow-md space-y-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-nacar-pink/80 uppercase">
+                        <span>Margen Neto Real en Caja</span>
+                        <i class="fa-solid fa-piggy-bank text-amber-300"></i>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white" x-text="formatUSD(cashFlowNetMarginUSD())"></div>
+                    <div class="text-xs font-semibold text-nacar-pink" x-text="'Utilidad limpia disponible'"></div>
+                    <p class="text-[10px] text-nacar-pink/70 pt-1 border-t border-white/20">Capital libre de obligaciones listo para reinversión.</p>
+                </div>
+            </div>
+
+            <!-- SECTION A: CASH FLOW ENTRY FORM -->
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm space-y-4">
+                <div class="border-b border-nacar-main/15 pb-3">
+                    <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-nacar-main"></i> Registrar Nuevo Movimiento Financiero (Entrada / Salida)
+                    </h3>
+                    <p class="text-xs text-nacar-main/70">Registra abonos de clientes, compras de empaques, envíos MRW o aportes de capital.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Input 1: Movement Type -->
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Tipo de Movimiento</label>
+                        <select x-model="cashFlowForm.type" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-xs sm:text-sm text-nacar-main font-bold focus:outline-none focus:border-nacar-main">
+                            <option value="Ingreso / Venta">🟢 Ingreso / Venta</option>
+                            <option value="Gasto de Operación / Flete">🔴 Gasto Operación / Flete</option>
+                            <option value="Retiro / Utilidad Socios">🟣 Retiro / Utilidad Socios</option>
+                            <option value="Aporte Capital">🔵 Aporte Capital</option>
+                        </select>
+                    </div>
+
+                    <!-- Input 2: Concept / Description -->
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Descripción / Concepto</label>
+                        <input type="text" x-model="cashFlowForm.concept" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-nacar-main font-semibold focus:outline-none focus:border-nacar-main" placeholder="Ej. Envío MRW / Pago Empaques">
+                    </div>
+
+                    <!-- Input 3: Amount USD -->
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Monto ($ USD)</label>
+                        <input type="number" step="0.01" x-model.number="cashFlowForm.amount" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-xs sm:text-sm text-nacar-main font-extrabold focus:outline-none focus:border-nacar-main text-right" placeholder="0.00">
+                    </div>
+
+                    <!-- Input 4: Payment Method / Account -->
+                    <div>
+                        <label class="block text-xs font-bold text-nacar-main/80 mb-1">Cuenta / Método Pago</label>
+                        <select x-model="cashFlowForm.account" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-xs sm:text-sm text-nacar-main font-semibold focus:outline-none focus:border-nacar-main">
+                            <option value="Efectivo $">💵 Efectivo $</option>
+                            <option value="Pago Móvil / Bs BCV">📲 Pago Móvil / Bs BCV</option>
+                            <option value="Zelle">⚡ Zelle</option>
+                            <option value="Banesco Panamá">🏛️ Banesco Panamá</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button @click="registerCashFlowMovement()" class="bg-nacar-main hover:bg-nacar-main/90 text-nacar-pink font-extrabold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md flex items-center gap-2 active:scale-95">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> [+ Registrar Movimiento en Caja & Sync Sheets]
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION C: CASH FLOW MOVEMENT HISTORY TABLE -->
+            <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b border-nacar-main/15 pb-3">
+                    <h3 class="text-base font-bold text-nacar-main flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-nacar-main"></i> Historial de Entradas y Salidas de Tesorería
+                    </h3>
+                    <span class="text-xs text-nacar-main/70 font-semibold" x-text="cashMovements.length + ' movimientos registrados'"></span>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-nacar-main/20 text-[11px] text-nacar-main/70 uppercase tracking-wider bg-nacar-soft">
+                                <th class="py-3 px-4">Fecha</th>
+                                <th class="py-3 px-4">Tipo</th>
+                                <th class="py-3 px-4">Concepto / Detalle</th>
+                                <th class="py-3 px-4">Cuenta / Método</th>
+                                <th class="py-3 px-4 text-right">Monto ($ USD)</th>
+                                <th class="py-3 px-4 text-right">Equiv. Bs. (BCV)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-nacar-main/10 text-xs sm:text-sm">
+                            <template x-for="(mov, idx) in cashMovements" :key="idx">
+                                <tr class="hover:bg-nacar-soft/50 transition-colors">
+                                    <td class="py-3 px-4 text-nacar-main/70 font-mono text-xs" x-text="mov.date"></td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                                              :class="{
+                                                  'bg-emerald-100 text-emerald-800 border border-emerald-300': mov.type.includes('Ingreso') || mov.type.includes('Aporte'),
+                                                  'bg-rose-100 text-rose-800 border border-rose-300': mov.type.includes('Gasto'),
+                                                  'bg-purple-100 text-purple-800 border border-purple-300': mov.type.includes('Retiro')
+                                              }" x-text="mov.type"></span>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-nacar-main" x-text="mov.concept"></td>
+                                    <td class="py-3 px-4 text-nacar-main/80 font-medium" x-text="mov.account"></td>
+                                    <td class="py-3 px-4 text-right font-extrabold font-mono"
+                                        :class="mov.type.includes('Gasto') || mov.type.includes('Retiro') ? 'text-rose-600' : 'text-emerald-700'"
+                                        x-text="(mov.type.includes('Gasto') || mov.type.includes('Retiro') ? '-' : '+') + formatUSD(mov.amount)"></td>
+                                    <td class="py-3 px-4 text-right font-mono text-nacar-main/70" x-text="formatVES(mov.amount * bcvRate)"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 5: INTERACTIVE CAPITAL & MARGIN CHARTS -->
         <div x-show="activeTab === 'analytics'" class="space-y-6" x-cloak>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
@@ -639,7 +793,7 @@
             </div>
         </div>
 
-        <!-- TAB 5: OPERATIONAL MANUAL & NON-NEGOTIABLE RULES -->
+        <!-- TAB 6: OPERATIONAL MANUAL & NON-NEGOTIABLE RULES -->
         <div x-show="activeTab === 'guide'" class="space-y-6" x-cloak>
             <div class="bg-white border border-nacar-main/15 rounded-2xl p-6 shadow-sm space-y-6">
                 <div>
@@ -694,9 +848,9 @@
                     </h4>
                     <ol class="list-decimal list-inside text-xs text-nacar-main/80 space-y-2 leading-relaxed">
                         <li>Ingresa a la pestaña <strong>2. Inventario Real</strong> y ubica el producto correspondiente.</li>
-                        <li>Si el cliente paga en <strong>Efectivo o Zelle</strong>, presiona el botón de carrito (<i class="fa-solid fa-cart-shopping text-emerald-700"></i>) para descontar la unidad y registrar el ingreso en caja.</li>
-                        <li>Si la venta es a <strong>Crédito</strong>, calcula el precio final con el recargo del +15% en la <strong>1. Calculadora</strong>, solicita una inicial mínima del 30%-50% y anota el compromiso de pago con fecha tope del 15.</li>
-                        <li>El día 15, dirígete a la pestaña <strong>3. Cuentas por Cobrar</strong> y presiona "Registrar Pago en Bs." para saldar la cuenta a la Tasa BCV del día.</li>
+                        <li>Usa el <strong>Selector de Estado en Vivo</strong> para cambiar el estatus a <code>Stock</code>, <code>En Tránsito</code> o <code>Vendido</code>.</li>
+                        <li>Si el cliente paga en <strong>Efectivo o Zelle</strong>, presiona el botón de carrito (<i class="fa-solid fa-cart-shopping text-emerald-700"></i>) para descontar la unidad y registrar la entrada en caja.</li>
+                        <li>Registra cualquier flete o gasto adicional en la pestaña <strong>4. Flujo de Caja & Bancos</strong> para mantener actualizada la liquidez neta.</li>
                     </ol>
                 </div>
             </div>
@@ -729,7 +883,7 @@
                     <div>
                         <label class="block text-xs font-bold text-nacar-main/80 mb-1">Estado Inicial</label>
                         <select x-model="newItem.status" class="w-full bg-nacar-soft border border-nacar-main/20 rounded-xl px-3 py-2 text-sm text-nacar-main focus:outline-none focus:border-nacar-main">
-                            <option value="Stock">Stock Físico</option>
+                            <option value="Stock">En Stock</option>
                             <option value="En Tránsito">En Tránsito</option>
                             <option value="Crédito Pendiente">Crédito Pendiente</option>
                         </select>
@@ -871,6 +1025,21 @@
                     amount: 0
                 },
 
+                // Cash Flow Form & Initial Data
+                cashFlowForm: {
+                    type: 'Gasto de Operación / Flete',
+                    concept: '',
+                    amount: 0,
+                    account: 'Efectivo $'
+                },
+
+                cashMovements: [
+                    { date: '2026-10-15', type: 'Ingreso / Venta', concept: 'Cobro Venta Set Relojes', account: 'Zelle', amount: 80.00 },
+                    { date: '2026-10-16', type: 'Gasto de Operación / Flete', concept: 'Flete Nacional MRW Lote 2', account: 'Pago Móvil / Bs BCV', amount: 12.50 },
+                    { date: '2026-10-17', type: 'Ingreso / Venta', concept: 'Venta Directa Topos Zarcillos', account: 'Efectivo $', amount: 36.00 },
+                    { date: '2026-10-18', type: 'Gasto de Operación / Flete', concept: 'Bolsas Nácar & Empaques', account: 'Efectivo $', amount: 15.00 }
+                ],
+
                 // Real Default Data Set for Nácar Store
                 inventory: [
                     { name: 'Set Reloj Vintage', category: 'Relojes', batch: 'Lote 1 (Octubre)', status: 'Stock', qty: 1, fob: 9.80, landed: 10.92, contado: 20.00, credit: 23.00 },
@@ -907,7 +1076,7 @@
                     },
                     kpi4: {
                         title: "¿Qué representa el Valor Total de Inventario?",
-                        desc: "Es el valor total a Costo Landed de toda la mercancía en nuestro poder (física en stock) más la que está viajando actualmente (Lote 2 en Tránsito por $75.50).",
+                        desc: "Es el valor total a Costo Landed de toda la mercancía en nuestro poder (física en stock) más la que está viajando actualmente (Lote 2 en Tránsito).",
                         action: "Asegúrate de rotar primero el stock físico antes de liberar la venta del lote en tránsito."
                     },
                     landed_rule: {
@@ -951,7 +1120,6 @@
                         if (response.ok) {
                             const data = await response.json();
                             if (data && Array.isArray(data.records) && data.records.length > 0) {
-                                // Parse received sheet rows to update inventory / sales list
                                 data.records.forEach(rec => {
                                     if (rec.tipo === 'Venta' || rec.tipo === 'Venta Directa') {
                                         this.salesList.unshift({
@@ -961,12 +1129,12 @@
                                             amount: parseFloat(rec.precioVenta) || 0,
                                             paid: rec.estado === 'Completado'
                                         });
-                                    } else if (rec.tipo === 'Stock' || rec.tipo === 'Tránsito') {
+                                    } else if (rec.tipo === 'Stock' || rec.tipo === 'Tránsito' || rec.tipo === 'En Tránsito') {
                                         this.inventory.unshift({
                                             name: rec.sku || 'SKU Google Sheets',
                                             category: 'General',
                                             batch: 'Lote Sync',
-                                            status: rec.tipo === 'Tránsito' ? 'En Tránsito' : 'Stock',
+                                            status: rec.tipo === 'Tránsito' ? 'En Tránsito' : (rec.estado || 'Stock'),
                                             qty: parseInt(rec.cantidad) || 1,
                                             fob: parseFloat(rec.costoBase) || parseFloat(rec.costoLanded) || 0,
                                             landed: parseFloat(rec.costoLanded) || 0,
@@ -997,19 +1165,90 @@
                         const response = await fetch(this.WEBHOOK_URL, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'text/plain;charset=utf-8' // Preferred for Google Apps Script webhooks
+                                'Content-Type': 'text/plain;charset=utf-8'
                             },
                             body: JSON.stringify(payload),
                             redirect: 'follow'
                         });
 
-                        this.showToast("¡Movimiento guardado e historial actualizado!", "success");
+                        this.showToast("¡Sincronizado con Google Sheets con éxito!", "success");
                     } catch (err) {
                         console.warn("POST error (fallback active):", err);
-                        this.showToast("¡Movimiento guardado localmente e historial actualizado!", "success");
+                        this.showToast("¡Actualizado localmente e historial registrado!", "success");
                     } finally {
                         this.isSyncing = false;
                     }
+                },
+
+                // LIVE INVENTORY STATUS UPDATE METHOD
+                async updateItemStatus(index, newStatus) {
+                    const item = this.inventory[index];
+                    const oldStatus = item.status;
+                    item.status = newStatus;
+
+                    const payload = {
+                        action: "updateStatus",
+                        sku: item.name,
+                        estado: newStatus
+                    };
+
+                    this.showToast(`Estado de ${item.name} actualizado a [${newStatus}] en Google Sheets`, "success");
+                    await this.postMovementToSheets(payload);
+                },
+
+                // CASH FLOW METHOD (CONTROL DE PLATA)
+                registerCashFlowMovement() {
+                    if (!this.cashFlowForm.concept || !this.cashFlowForm.amount || this.cashFlowForm.amount <= 0) {
+                        this.showToast("Por favor ingresa un concepto y monto válido.", "error");
+                        return;
+                    }
+
+                    const today = new Date().toISOString().split('T')[0];
+                    const newMov = {
+                        date: today,
+                        type: this.cashFlowForm.type,
+                        concept: this.cashFlowForm.concept,
+                        account: this.cashFlowForm.account,
+                        amount: parseFloat(this.cashFlowForm.amount)
+                    };
+
+                    this.cashMovements.unshift(newMov);
+
+                    const payload = {
+                        action: "registerCashFlow",
+                        tipo: newMov.type,
+                        concepto: newMov.concept,
+                        cuenta: newMov.account,
+                        montoUsd: newMov.amount,
+                        tasaBcv: this.bcvRate,
+                        fecha: today
+                    };
+
+                    this.postMovementToSheets(payload);
+
+                    // Reset Form
+                    this.cashFlowForm.concept = '';
+                    this.cashFlowForm.amount = 0;
+                },
+
+                cashFlowBalanceUSD() {
+                    const incomes = this.cashMovements
+                        .filter(m => m.type.includes('Ingreso') || m.type.includes('Aporte'))
+                        .reduce((acc, m) => acc + m.amount, 0);
+                    const expenses = this.cashMovements
+                        .filter(m => m.type.includes('Gasto') || m.type.includes('Retiro'))
+                        .reduce((acc, m) => acc + m.amount, 0);
+                    return incomes - expenses;
+                },
+
+                cashFlowTotalExpensesUSD() {
+                    return this.cashMovements
+                        .filter(m => m.type.includes('Gasto'))
+                        .reduce((acc, m) => acc + m.amount, 0);
+                },
+
+                cashFlowNetMarginUSD() {
+                    return this.cashFlowBalanceUSD();
                 },
 
                 // Lot Calculator Formulas
@@ -1037,7 +1276,7 @@
                     return parseFloat((this.simCreditPrice() - this.simLandedCost()).toFixed(2));
                 },
 
-                // KPI Computations
+                // Dynamic KPI Computations
                 totalRealizedRevenue() {
                     return this.salesList.filter(s => s.paid).reduce((acc, s) => acc + s.amount, 0);
                 },
@@ -1051,10 +1290,14 @@
                     return this.salesList.filter(s => !s.paid).reduce((acc, s) => acc + s.amount, 0);
                 },
                 stockInventoryValue() {
-                    return this.inventory.filter(i => i.status === 'Stock').reduce((acc, i) => acc + (i.landed * i.qty), 0);
+                    return this.inventory
+                        .filter(i => i.status === 'Stock' || i.status === 'En Stock')
+                        .reduce((acc, i) => acc + (i.landed * i.qty), 0);
                 },
                 transitInventoryValue() {
-                    return this.inventory.filter(i => i.status === 'En Tránsito').reduce((acc, i) => acc + (i.landed * i.qty), 0);
+                    return this.inventory
+                        .filter(i => i.status === 'En Tránsito')
+                        .reduce((acc, i) => acc + (i.landed * i.qty), 0);
                 },
                 totalInventoryValue() {
                     return this.stockInventoryValue() + this.transitInventoryValue();
@@ -1086,7 +1329,6 @@
                     
                     this.inventory.push(newItemObj);
 
-                    // Payload sync with Google Sheets
                     const payload = {
                         sku: newItemObj.name,
                         tipo: "Stock",
@@ -1147,10 +1389,21 @@
 
                     this.salesList.push(saleObj);
 
+                    // Add to Cash Flow automatically if paid
+                    if (!isCredit) {
+                        this.cashMovements.unshift({
+                            date: new Date().toISOString().split('T')[0],
+                            type: 'Ingreso / Venta',
+                            concept: `Venta Directa: ${saleObj.product} (${saleObj.client})`,
+                            account: 'Efectivo $',
+                            amount: saleObj.amount
+                        });
+                    }
+
                     const payload = {
                         sku: saleObj.product,
                         tipo: "Venta",
-                        costoLanded: parseFloat((saleObj.amount * 0.4).toFixed(2)), // Estimated landed cost ratio
+                        costoLanded: parseFloat((saleObj.amount * 0.4).toFixed(2)),
                         precioVenta: saleObj.amount,
                         metodoPago: saleObj.type,
                         tasaBcv: this.bcvRate,
@@ -1176,6 +1429,16 @@
                             paid: true
                         };
                         this.salesList.push(saleObj);
+                        
+                        // Cash Flow income registration
+                        this.cashMovements.unshift({
+                            date: new Date().toISOString().split('T')[0],
+                            type: 'Ingreso / Venta',
+                            concept: `Venta Contado: ${item.name}`,
+                            account: 'Efectivo $',
+                            amount: item.contado
+                        });
+
                         if (item.qty === 0) item.status = 'Vendido';
 
                         const payload = {
@@ -1195,6 +1458,14 @@
                 markAsPaid(index) {
                     this.salesList[index].paid = true;
                     const item = this.salesList[index];
+
+                    this.cashMovements.unshift({
+                        date: new Date().toISOString().split('T')[0],
+                        type: 'Ingreso / Venta',
+                        concept: `Cobro Crédito Quincenal: ${item.product}`,
+                        account: 'Pago Móvil / Bs BCV',
+                        amount: item.amount
+                    });
                     
                     const payload = {
                         action: "updateStatus",
